@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neurocine | Eye Tracking and Neurocinematics for World Cinema</title>
+<meta name="description" content="Neurocine is an academic research project using eye tracking and neurocinematics to study how audiences watch film, with a focus on under-represented world cinema.">
+<meta name="keywords" content="neurocinematics, eye tracking, film studies, spectatorship, world cinema, audience research, EEG, GSR">
+<meta name="author" content="Neurocine Research Project">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#04060B">
+<meta name="color-scheme" content="dark">
+
+<!-- ── SET THIS ONE LINE ──────────────────────────────────────────────
+     Replace both USERNAME/neurocine URLs with your published address.
+     Until you do, search engines and link previews will point nowhere. -->
+<link rel="canonical" href="https://USERNAME.github.io/neurocine/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Neurocine">
+<meta property="og:title" content="Neurocine | Eye Tracking and Neurocinematics for World Cinema">
+<meta property="og:description" content="How does your film shape the way audiences look, feel and respond?">
+<meta property="og:image" content="https://USERNAME.github.io/neurocine/assets/poster.jpg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta property="og:image:alt" content="A film frame overlaid with recorded audience gaze data and scanpath.">
+<meta property="og:url" content="https://USERNAME.github.io/neurocine/">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Neurocine">
+<meta name="twitter:description" content="How does your film shape the way audiences look, feel and respond?">
+<meta name="twitter:image" content="https://USERNAME.github.io/neurocine/assets/poster.jpg">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+<!-- the poster is the first thing anyone sees; fetch it early -->
+<link rel="preload" as="image" href="assets/poster.jpg" fetchpriority="high">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,200..500&family=Spectral:ital,wght@0,300;1,200;1,300&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ResearchProject",
+  "name": "Neurocine",
+  "url": "https://USERNAME.github.io/neurocine/",
+  "description": "An academic research project bringing film studies and neurocinematics together to explore how audiences experience cinema, with a focus on films from under-represented countries, cultures and cinematic traditions.",
+  "keywords": "neurocinematics, eye tracking, spectatorship, film studies, world cinema, audience response",
+  "nonprofitStatus": "Non-commercial academic research",
+  "knowsAbout": ["Neurocinematics", "Eye tracking", "Film studies", "Spectatorship", "World cinema"]
+}
+</script>
+
+<style>
+/* ============================================================
+   SEEING CINEMA
+   Palette: auditorium blue-black, projection white.
+   Saturated colour is reserved for eye-tracking data only.
+   ============================================================ */
+
+:root{
+  --black:#04060B;
+  --deep:#070A12;
+  --panel:#0B0F19;
+  --line:rgba(214,222,240,.13);
+  --line-soft:rgba(214,222,240,.07);
+  --paper:#ECE9E3;
+  --mute:#8B93A6;
+  --dim:#5C6376;
+
+  /* eye-tracking heat scale — data only */
+  --cold:#2B57F5;
+  --cool:#17B8D8;
+  --warm:#F2B233;
+  --hot:#F0453F;
+
+  --measure:34rem;
+  --gutter:clamp(1.25rem,5vw,5.5rem);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{-webkit-text-size-adjust:100%}
+
+body{
+  margin:0;
+  background:var(--black);
+  color:var(--paper);
+  font-family:"Spectral",Georgia,"Times New Roman",serif;
+  font-weight:300;
+  font-size:clamp(1rem,.95rem + .25vw,1.09rem);
+  line-height:1.68;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+::selection{background:var(--cool);color:var(--black)}
+
+a{color:inherit}
+
+:focus-visible{
+  outline:2px solid var(--cool);
+  outline-offset:4px;
+  border-radius:1px;
+}
+
+/* ---------- type ---------- */
+
+.display{
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-variation-settings:"wdth" 118,"wght" 250;
+  font-weight:250;
+  text-transform:uppercase;
+  line-height:.94;
+  letter-spacing:.045em;
+  margin:0;
+}
+
+.label{
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-variation-settings:"wdth" 100,"wght" 500;
+  font-size:.66rem;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--dim);
+  margin:0 0 1.9rem;
+}
+
+.lede{
+  font-size:clamp(1.06rem,1rem + .45vw,1.3rem);
+  line-height:1.64;
+  max-width:var(--measure);
+  color:rgba(236,233,227,.86);
+  margin:0;
+}
+
+p{max-width:var(--measure)}
+
+/* ---------- structure ---------- */
+
+.band{
+  padding:clamp(5.5rem,11vw,10.5rem) var(--gutter);
+  position:relative;
+}
+.band--tight{padding-top:clamp(4rem,8vw,7rem)}
+.wrap{max-width:82rem;margin:0 auto}
+
+/* ============================================================
+   MASTHEAD
+   ============================================================ */
+
+.masthead{
+  position:fixed;inset:0 0 auto 0;z-index:60;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:1rem;
+  padding:1.1rem var(--gutter);
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:.66rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--mute);
+  background:linear-gradient(to bottom,rgba(4,6,11,.92),rgba(4,6,11,0));
+  opacity:0;transform:translateY(-6px);
+  transition:opacity .5s ease,transform .5s ease;
+  pointer-events:none;
+}
+.masthead.is-visible{opacity:1;transform:none;pointer-events:auto}
+.masthead a{text-decoration:none;color:var(--paper);opacity:.75}
+.masthead a:hover{opacity:1}
+.masthead b{font-weight:500;color:var(--paper);font-variation-settings:"wdth" 112}
+
+/* ============================================================
+   HERO — title card
+   ============================================================ */
+
+.hero{
+  min-height:88svh;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;
+  padding:8rem var(--gutter) clamp(3rem,7vw,5rem);
+  position:relative;overflow:hidden;
+}
+
+/* projector wash */
+.hero::before{
+  content:"";position:absolute;z-index:0;
+  left:50%;top:-18%;width:130vmax;height:110vmax;
+  transform:translateX(-50%);
+  background:radial-gradient(ellipse 42% 34% at 50% 40%,rgba(52,74,132,.30),rgba(23,184,216,.05) 42%,transparent 68%);
+  pointer-events:none;
+}
+.hero>*{position:relative;z-index:1}
+
+.hero-eyebrow{
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:.64rem;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 clamp(2rem,5vw,3.2rem);
+}
+
+.titleblock{position:relative;width:100%;max-width:74rem}
+
+.title{
+  font-size:clamp(2rem,10.5vw,9.5rem);
+  font-variation-settings:"wdth" 125,"wght" 220;
+  letter-spacing:.03em;
+  color:var(--paper);
+  white-space:nowrap;
+}
+
+/* gaze scanpath traced across the title on load */
+.titlegaze{
+  position:absolute;inset:-14% -2%;
+  width:104%;height:128%;
+  pointer-events:none;overflow:visible;
+}
+.titlegaze .path{
+  fill:none;stroke:var(--cool);stroke-width:1.1;
+  stroke-linecap:round;stroke-linejoin:round;
+  opacity:.9;
+  stroke-dasharray:1400;stroke-dashoffset:1400;
+  animation:trace 4.2s cubic-bezier(.5,.05,.3,1) 1.1s forwards,gazeout 1.6s ease 6.2s forwards;
+}
+.titlegaze circle{
+  fill:none;stroke:var(--cool);stroke-width:1;
+  opacity:0;transform-box:fill-box;transform-origin:center;
+  animation:fix .9s ease forwards,gazeout 1.6s ease 6.2s forwards;
+}
+@keyframes trace{to{stroke-dashoffset:0}}
+@keyframes fix{
+  0%{opacity:0;transform:scale(.2)}
+  45%{opacity:.85;transform:scale(1.25)}
+  100%{opacity:.5;transform:scale(1)}
+}
+@keyframes gazeout{to{opacity:0}}
+
+.hero-question{
+  font-size:clamp(1.2rem,1rem + 1.15vw,1.95rem);
+  font-style:italic;font-weight:200;
+  line-height:1.4;
+  max-width:26ch;
+  margin:clamp(2.2rem,5vw,3.4rem) auto 0;
+  color:rgba(236,233,227,.92);
+  text-wrap:balance;
+}
+
+.hero-note{
+  margin:clamp(1.6rem,3.5vw,2.4rem) auto 0;
+  max-width:42ch;
+  color:var(--mute);
+  font-size:1rem;line-height:1.6;
+}
+
+.scrollcue{
+  margin-top:clamp(2.6rem,6vw,4.2rem);
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--dim);
+  display:flex;flex-direction:column;align-items:center;gap:.9rem;
+}
+.scrollcue i{display:block;width:1px;height:2.6rem;background:linear-gradient(var(--dim),transparent)}
+
+.hero-fade{opacity:0;animation:rise 1.4s cubic-bezier(.2,.7,.3,1) forwards}
+.d1{animation-delay:.15s}.d2{animation-delay:.35s}.d3{animation-delay:1.55s}
+.d4{animation-delay:1.8s}.d5{animation-delay:2.1s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ============================================================
+   THE SAMPLE — the loudest thing on the page
+   ============================================================ */
+
+.screen{
+  margin:0;position:relative;
+  padding-left:0;padding-right:0;
+  background:#000;
+  border-top:1px solid var(--line-soft);
+}
+
+.screen-head{
+  padding:0 var(--gutter) clamp(1.8rem,3.5vw,2.6rem);
+  display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+  gap:1.5rem 2.5rem;
+  max-width:82rem;margin:0 auto;
+}
+.screen-head h2{
+  font-size:clamp(1.6rem,1.1rem + 2.2vw,3.2rem);
+  max-width:15ch;
+}
+.screen-head > p{
+  font-size:1.02rem;color:var(--mute);max-width:30ch;margin:0;
+  font-style:italic;
+}
+
+/* the marker that says: this is a result, not a mood film */
+.sample-mark{
+  display:inline-flex;align-items:center;gap:.65rem;
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--warm);
+  margin:0 0 1.15rem;
+}
+.sample-mark .pip{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--warm);
+  box-shadow:0 0 0 0 rgba(242,178,51,.55);
+  animation:pip 2.8s ease-out infinite;
+}
+@keyframes pip{
+  0%{box-shadow:0 0 0 0 rgba(242,178,51,.5)}
+  70%{box-shadow:0 0 0 11px rgba(242,178,51,0)}
+  100%{box-shadow:0 0 0 0 rgba(242,178,51,0)}
+}
+
+/* full-bleed holder with a faint projected glow behind the frame */
+.stage-hold{position:relative;width:100%}
+.stage-hold::before{
+  content:"";position:absolute;z-index:0;
+  left:50%;top:6%;width:86%;height:88%;
+  transform:translateX(-50%);
+  background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(23,184,216,.16),rgba(43,87,245,.06) 55%,transparent 75%);
+  filter:blur(60px);
+  pointer-events:none;
+}
+
+.stage{
+  position:relative;z-index:1;
+  width:100%;
+  aspect-ratio:16/9;
+  background:#000;
+  overflow:hidden;
+  border-block:1px solid rgba(214,222,240,.16);
+}
+
+/* contain, never cover: cropping would cut the eye-tracking readout */
+.stage video{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:contain;
+  display:block;
+  background:#000;
+}
+
+.playpause{
+  position:absolute;z-index:3;
+  right:clamp(.9rem,2vw,1.6rem);bottom:clamp(.9rem,2vw,1.6rem);
+  width:46px;height:46px;
+  display:grid;place-items:center;
+  background:rgba(4,6,11,.55);
+  border:1px solid rgba(214,222,240,.22);
+  border-radius:50%;
+  cursor:pointer;
+  opacity:0;transform:scale(.9);
+  transition:opacity .35s ease,transform .35s ease,background-color .25s ease,border-color .25s ease;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+}
+.stage:hover .playpause,
+.playpause:focus-visible,
+.playpause[aria-pressed="false"]{opacity:1;transform:none}
+.playpause:hover{background:rgba(4,6,11,.8);border-color:rgba(236,233,227,.5)}
+.playpause .glyph{
+  width:11px;height:13px;
+  background:var(--paper);
+  clip-path:polygon(0 0,38% 0,38% 100%,0 100%,0 0,62% 0,100% 0,100% 100%,62% 100%);
+}
+.playpause[aria-pressed="false"] .glyph{
+  clip-path:polygon(12% 0,100% 50%,12% 100%);
+}
+
+.progress{
+  position:relative;z-index:1;
+  height:2px;width:100%;
+  background:rgba(214,222,240,.1);
+}
+.progress i{
+  display:block;height:100%;width:0;
+  background:linear-gradient(90deg,var(--cold),var(--cool),var(--warm),var(--hot));
+}
+
+.screen-foot{
+  max-width:82rem;margin:0 auto;
+  padding:1.4rem var(--gutter) 0;
+  display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
+  gap:1rem 2.5rem;
+}
+.screen-note{
+  font-size:.86rem;color:var(--mute);margin:0;max-width:34ch;
+  font-family:"Archivo",Arial,sans-serif;letter-spacing:.02em;line-height:1.55;
+}
+.credit{
+  font-size:.82rem;color:var(--dim);margin:0;max-width:40ch;
+  font-family:"Archivo",Arial,sans-serif;line-height:1.6;
+  text-align:right;
+}
+.credit span{
+  display:block;
+  font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;
+  color:rgba(139,147,166,.6);margin-bottom:.4rem;
+}
+@media (max-width:52rem){
+  .credit{text-align:left}
+}
+
+/* ============================================================
+   THE IDEA
+   ============================================================ */
+
+.idea{border-top:1px solid var(--line-soft)}
+.idea h2{
+  font-size:clamp(1.55rem,1.1rem + 2.1vw,3.1rem);
+  max-width:19ch;
+  margin-bottom:clamp(1.6rem,3vw,2.2rem);
+}
+.signal{
+  margin-top:clamp(3rem,7vw,5rem);
+  width:100%;height:auto;overflow:visible;
+}
+.signal .trace{
+  fill:none;stroke:url(#sigGrad);stroke-width:1.5;
+  stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:var(--len,4000);stroke-dashoffset:var(--len,4000);
+}
+.signal.is-in .trace{transition:stroke-dashoffset 3.4s cubic-bezier(.45,.05,.25,1);stroke-dashoffset:0}
+.signal .tick{stroke:var(--line);stroke-width:1}
+.signal text{
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+  fill:var(--dim);
+}
+
+/* ============================================================
+   WORLD CINEMA
+   ============================================================ */
+
+.world{
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 0%,rgba(43,87,245,.12),transparent 60%),
+    radial-gradient(ellipse 50% 50% at 90% 90%,rgba(240,69,63,.08),transparent 60%),
+    var(--deep);
+  border-top:1px solid var(--line-soft);
+  overflow:hidden;
+}
+.world-grid{
+  display:grid;grid-template-columns:1fr;gap:clamp(2rem,4vw,3.5rem);
+  align-items:start;
+}
+@media (min-width:62rem){
+  .world-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(3rem,6vw,6rem)}
+}
+.world h2{
+  font-size:clamp(1.9rem,1.1rem + 3.4vw,4.5rem);
+  max-width:14ch;
+}
+.world p + p{margin-top:1.1rem}
+.world .lede{color:rgba(236,233,227,.9)}
+.world-body{padding-top:.4rem}
+
+/* 35mm strip */
+.strip{
+  margin:clamp(3.5rem,8vw,6rem) 0 0;
+  position:relative;
+  padding:14px 0;
+  border-block:1px solid var(--line-soft);
+  background:#020309;
+}
+.strip::before,.strip::after{
+  content:"";position:absolute;left:0;right:0;height:14px;
+  background-image:radial-gradient(circle,rgba(236,233,227,.22) 0 1.6px,transparent 2.2px);
+  background-size:26px 14px;background-position:center;
+}
+.strip::before{top:0}
+.strip::after{bottom:0}
+.frames{display:flex;gap:3px;padding:0 3px}
+.frame{
+  flex:1 1 0;
+  aspect-ratio:4/3;
+  min-width:0;
+  position:relative;
+  filter:saturate(.12) brightness(.42);
+  transition:filter .9s ease,transform .9s ease;
+}
+.frame.lit{filter:none}
+.frame::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(0,0,0,.18),rgba(0,0,0,.42));
+}
+@media (max-width:52rem){
+  .frame:nth-child(n+9){display:none}
+}
+.strip-note{
+  margin:1.1rem 0 0;
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:.72rem;letter-spacing:.06em;color:var(--dim);max-width:52ch;
+}
+
+
+/* ============================================================
+   FOR FILMMAKERS
+   ============================================================ */
+
+.ask{border-top:1px solid var(--line-soft)}
+.ask h2{
+  font-size:clamp(1.7rem,1.1rem + 2.7vw,3.7rem);
+  max-width:15ch;margin-bottom:clamp(1.8rem,3.5vw,2.6rem);
+}
+.ask-grid{
+  display:grid;grid-template-columns:1fr;gap:clamp(2.4rem,5vw,4.5rem);
+}
+@media (min-width:62rem){
+  .ask-grid{grid-template-columns:minmax(0,1fr) minmax(0,.85fr);gap:clamp(3rem,7vw,7rem)}
+}
+
+.ask p.lede + p.lede{margin-top:1.2rem}
+
+.contribute{
+  margin:clamp(2.6rem,5vw,3.8rem) 0 0;
+  max-width:none;
+  font-size:clamp(1.3rem,1rem + 1.4vw,2.2rem);
+  font-style:italic;font-weight:300;
+  line-height:1.35;
+  color:rgba(236,233,227,.92);
+}
+.contribute a{
+  font-style:normal;
+  text-decoration:none;
+  color:var(--paper);
+  box-shadow:inset 0 -1px 0 0 rgba(23,184,216,.55);
+  padding-bottom:.08em;
+  transition:box-shadow .3s ease,color .3s ease;
+}
+.contribute a:hover{box-shadow:inset 0 -.5em 0 0 rgba(23,184,216,.22)}
+
+.credo{
+  margin-top:clamp(3.5rem,7vw,5.5rem);
+  padding-top:1.6rem;
+  border-top:1px solid var(--line-soft);
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:.68rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--mute);
+  max-width:none;
+}
+
+/* ============================================================
+   CONTACT
+   ============================================================ */
+
+.contact{border-top:1px solid var(--line-soft);background:var(--deep)}
+.contact h2{font-size:clamp(1.6rem,1.1rem + 2.2vw,3.1rem);margin-bottom:clamp(1.8rem,3.5vw,2.6rem)}
+.card{
+  display:grid;grid-template-columns:1fr;gap:1.6rem 3rem;
+  max-width:52rem;
+}
+@media (min-width:42rem){.card{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card dt{
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:.6rem;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:.55rem;
+}
+.card dd{margin:0;font-size:1.06rem;color:var(--paper)}
+.card dd a{text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:2px}
+.card dd a:hover{border-color:var(--cool)}
+.placeholder{color:var(--mute);font-style:italic}
+
+/* ============================================================
+   END CARD
+   ============================================================ */
+
+.endcard{
+  padding:clamp(6rem,14vw,12rem) var(--gutter);
+  text-align:center;
+  background:#000;
+  border-top:1px solid var(--line-soft);
+}
+.endcard ul{list-style:none;margin:0;padding:0;display:grid;gap:clamp(1.1rem,2.6vw,1.9rem)}
+.endcard li{
+  font-family:"Archivo",Arial,sans-serif;
+  font-variation-settings:"wdth" 118,"wght" 220;
+  text-transform:uppercase;
+  font-size:clamp(.92rem,.6rem + 1.25vw,1.75rem);
+  letter-spacing:.16em;
+  color:rgba(236,233,227,.58);
+  transition:color .6s ease;
+}
+.endcard li:hover{color:var(--paper)}
+
+footer{
+  padding:2rem var(--gutter) 3rem;
+  background:#000;
+  display:flex;flex-wrap:wrap;gap:.8rem 2rem;justify-content:space-between;
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--dim);
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+  .hero-fade{opacity:1;transform:none}
+  .signal .trace{stroke-dashoffset:0}
+  .titlegaze{display:none}
+}
+
+/* ============================================================
+   DEVICES
+   ============================================================ */
+
+/* laptops and small desktops */
+@media (max-width:64rem){
+  .screen-head{align-items:flex-start}
+}
+
+/* tablets */
+@media (max-width:52rem){
+  .hero{min-height:auto;padding-top:6.5rem}
+  .screen-head{flex-direction:column;align-items:flex-start;gap:1rem}
+  .screen-foot{flex-direction:column;gap:1rem}
+  .signal{margin-top:clamp(2.2rem,6vw,3.5rem)}
+}
+
+/* phones */
+@media (max-width:44rem){
+  :root{--measure:100%}
+  .title{font-size:11.5vw;letter-spacing:.01em}
+  .hero{padding-top:5.5rem;padding-bottom:3rem}
+  .hero-eyebrow{
+    font-size:.54rem;letter-spacing:.2em;
+    max-width:24ch;margin-left:auto;margin-right:auto;
+    line-height:1.9;
+  }
+  .hero-question{font-size:1.25rem;max-width:22ch}
+  .hero-note{font-size:.95rem}
+  .scrollcue i{height:1.8rem}
+  .playpause{width:40px;height:40px;opacity:1;transform:none}
+  .band{padding-top:4.5rem;padding-bottom:4.5rem}
+  .world-body{padding-top:0}
+  .strip{margin-top:2.6rem}
+  .endcard li{letter-spacing:.1em}
+  footer{flex-direction:column;gap:.6rem}
+}
+
+/* narrow phones: the title must never touch the edges */
+@media (max-width:23rem){
+  .title{font-size:10.5vw}
+  .hero-eyebrow{font-size:.5rem;letter-spacing:.16em}
+}
+
+/* short landscape phones */
+@media (max-height:26rem) and (orientation:landscape){
+  .hero{min-height:auto;padding-top:5rem;padding-bottom:2.5rem}
+  .scrollcue{display:none}
+}
+
+/* coarse pointers have no hover, so the control must always be visible */
+@media (hover:none){
+  .playpause{opacity:1;transform:none}
+}
+
+</style>
+</head>
+<body>
+
+<header class="masthead" id="masthead">
+  <b>Neurocine</b>
+  <a href="#contact">Contact</a>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <p class="hero-eyebrow hero-fade d1">Film · World Cinema · Spectatorship · Neurocinematics</p>
+
+  <div class="titleblock hero-fade d2">
+    <h1 class="title display">Neurocine</h1>
+
+    <!-- one orchestrated page-load moment: a scanpath reading the title -->
+    <svg class="titlegaze" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path class="path" d="M90,150 L188,86 L262,132 L355,74 L438,128 L520,80 L604,138 L688,84 L772,130 L866,92"/>
+      <circle cx="90"  cy="150" r="9"  style="animation-delay:1.35s,6.2s"/>
+      <circle cx="262" cy="132" r="13" style="animation-delay:2.05s,6.2s"/>
+      <circle cx="438" cy="128" r="8"  style="animation-delay:2.75s,6.2s"/>
+      <circle cx="604" cy="138" r="14" style="animation-delay:3.5s,6.2s"/>
+      <circle cx="772" cy="130" r="9"  style="animation-delay:4.25s,6.2s"/>
+    </svg>
+  </div>
+
+  <p class="hero-question hero-fade d3">How does your film shape the way audiences look, feel and respond?</p>
+
+  <p class="hero-note hero-fade d4">An academic research project bringing film studies and neurocinematics together to explore how audiences experience cinema.</p>
+
+  <div class="scrollcue hero-fade d5" aria-hidden="true"><i></i>Sample</div>
+</section>
+
+<!-- ============ THE SAMPLE ============ -->
+<section class="screen band band--tight" aria-labelledby="screen-h">
+  <div class="screen-head">
+    <div>
+      <p class="sample-mark"><span class="pip"></span>Sample result</p>
+      <h2 id="screen-h" class="display">Watch cinema through the gaze</h2>
+    </div>
+  </div>
+
+  <div class="stage-hold">
+    <div class="stage" id="stage">
+      <video id="reel" poster="assets/poster.jpg" playsinline muted loop preload="none"
+             width="1920" height="1080"
+             aria-label="Eye-tracking analysis of a film trailer, showing recorded gaze, fixations and scanpath.">
+        <source src="assets/neurocine-scanpath.mp4" type="video/mp4">
+      </video>
+      <button class="playpause" id="playpause" type="button" aria-pressed="true" aria-label="Pause the sample">
+        <span class="glyph" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+  </div>
+
+  <div class="screen-foot">
+    <p class="screen-note">Recorded gaze, fixation duration and scanpath, rendered over the trailer frame.</p>
+    <p class="credit">
+      <span>Film source</span>
+      Kudapola Unnanse 1848 — Kapila Perrera — IERI. Preview used for research illustration only.
+    </p>
+  </div>
+</section>
+
+<!-- ============ THE IDEA ============ -->
+<section class="band idea">
+  <div class="wrap">
+    <p class="label">The idea</p>
+    <h2 class="display">From gaze to neurocinematics</h2>
+
+    <svg class="signal" id="signal" viewBox="0 0 1200 180" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A single continuous trace passing through eye tracking, EEG, GSR, heart rate and behavioural measures.">
+      <defs>
+        <linearGradient id="sigGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#2B57F5"/>
+          <stop offset="34%"  stop-color="#17B8D8"/>
+          <stop offset="68%"  stop-color="#F2B233"/>
+          <stop offset="100%" stop-color="#F0453F"/>
+        </linearGradient>
+      </defs>
+      <g id="sigTicks"></g>
+      <path class="trace" id="sigTrace" d=""/>
+      <g id="sigLabels"></g>
+    </svg>
+  </div>
+</section>
+
+<!-- ============ WORLD CINEMA ============ -->
+<section class="band world">
+  <div class="wrap">
+    <div class="world-grid">
+      <div>
+        <p class="label">World cinema</p>
+        <h2 class="display">Bringing neurocinematics to world cinema</h2>
+      </div>
+      <div class="world-body">
+        <p class="lede">Neurocinematics has enormous potential for understanding cinema — but its application has largely focused on a limited range of filmmaking contexts. We want to broaden that picture.</p>
+        <p class="lede" style="margin-top:1.2rem">By bringing films from under-represented countries, cultures and cinematic traditions into neurocinematic research, the project aims to create a more diverse understanding of how audiences experience film.</p>
+      </div>
+    </div>
+
+    <div class="strip" id="strip" aria-hidden="true">
+      <div class="frames" id="frames"></div>
+    </div>
+    <p class="strip-note">Three frames carry colour. The rest are the cinemas that neurocinematic research has yet to reach.</p>
+  </div>
+</section>
+
+<!-- ============ FOR FILMMAKERS ============ -->
+<section class="band ask" aria-labelledby="ask-h">
+  <div class="wrap">
+    <p class="label">For filmmakers</p>
+    <h2 id="ask-h" class="display">Your film. A new kind of cinema research.</h2>
+    <p class="lede">We are building a dataset of film trailers and audience responses across multiple cohorts.</p>
+    <p class="lede">We are seeking the official YouTube trailer link and permission to use the trailer for the agreed academic research and publication of the resulting dataset and findings.</p>
+
+    <p class="contribute">
+      Want to contribute?
+      <a href="#contact">Get in touch</a>
+    </p>
+
+    <p class="credo">Academic · Non-commercial · Film Studies · World Cinema · Neurocinematics</p>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="band contact" id="contact">
+  <div class="wrap">
+    <p class="label">Contact</p>
+    <h2 class="display">Contact us</h2>
+    <p class="lede" style="margin-bottom:clamp(2.4rem,5vw,3.6rem)">For information about the research, trailer use or permissions, please contact the research team.</p>
+    <dl class="card">
+      <div>
+        <dt>Researcher</dt>
+        <dd class="placeholder">[Researcher Name]</dd>
+      </div>
+      <div>
+        <dt>Institution</dt>
+        <dd class="placeholder">[Institution]</dd>
+      </div>
+      <div>
+        <dt>Email</dt>
+        <dd><a href="mailto:email@institution.edu" id="mailLink" class="placeholder">[Email]</a></dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ END CARD ============ -->
+<section class="endcard">
+  <ul>
+    <li>See your film through the gaze.</li>
+    <li>Bring neurocinematics to world cinema.</li>
+    <li>Contribute to academic research.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>Neurocine</span>
+  <span>Academic research · Non-commercial</span>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---- masthead appears once the hero is behind you ---- */
+  var mast = document.getElementById("masthead");
+  window.addEventListener("scroll", function(){
+    mast.classList.toggle("is-visible", window.scrollY > window.innerHeight * 0.7);
+  }, {passive:true});
+
+  /* ---- the sample ----
+     Nothing downloads or plays until the frame is actually on screen.
+     Once it starts it loops for good: scrolling away does not stop it. ---- */
+  var reel = document.getElementById("reel");
+  var pp   = document.getElementById("playpause");
+  var bar  = document.getElementById("bar");
+  var started = false;
+
+  function mark(playing){
+    pp.setAttribute("aria-pressed", String(playing));
+    pp.setAttribute("aria-label", playing ? "Pause the sample" : "Play the sample");
+  }
+
+  function begin(){
+    if (started) return;
+    started = true;
+    reel.preload = "auto";
+    var kick = reel.play();
+    if (kick && typeof kick.catch === "function") {
+      kick.catch(function(){ mark(false); });   // autoplay refused: leave the poster and the play button
+    }
+  }
+
+  pp.addEventListener("click", function(){
+    started = true;
+    if (reel.paused) { reel.play().catch(function(){}); } else { reel.pause(); }
+  });
+  reel.addEventListener("play",  function(){ mark(true); });
+  reel.addEventListener("pause", function(){ mark(false); });
+  reel.addEventListener("timeupdate", function(){
+    if (reel.duration) bar.style.width = (reel.currentTime / reel.duration * 100) + "%";
+  });
+
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function(entries, obs){
+      entries.forEach(function(e){
+        if (e.isIntersecting) { begin(); obs.disconnect(); }
+      });
+    }, {threshold:0.25}).observe(reel);
+  } else {
+    begin();
+  }
+
+  /* ---- the signal trace: one line, five measures ---- */
+  var W = 1200, MID = 96;
+  var segs = [
+    {name:"Eye tracking", w:230, fn:function(t,x){ /* saccades */
+        var steps=[[0,18],[.18,-34],[.34,22],[.52,-28],[.7,10],[.86,-18],[1,0]], pts=[];
+        for(var i=0;i<steps.length;i++) pts.push([x+steps[i][0]*230, MID+steps[i][1]]);
+        return pts; }},
+    {name:"EEG", w:250, fn:function(t,x){ var p=[];
+        for(var i=0;i<=100;i++){var u=i/100;
+          p.push([x+u*250, MID + Math.sin(u*46)*17*(0.5+0.5*Math.sin(u*5.5)) + Math.sin(u*113)*7]);}
+        return p; }},
+    {name:"GSR", w:230, fn:function(t,x){ var p=[];
+        for(var i=0;i<=60;i++){var u=i/60;
+          p.push([x+u*230, MID - 40*(1/(1+Math.exp(-(u-0.42)*11))) + 10*Math.exp(-Math.pow((u-0.78)/0.1,2))]);}
+        return p; }},
+    {name:"Heart rate", w:250, fn:function(t,x){ var p=[];
+        for(var b=0;b<4;b++){var o=x+b*62;
+          p.push([o,MID-40],[o+16,MID-40],[o+21,MID-33],[o+27,MID-62],[o+33,MID-16],[o+39,MID-40],[o+62,MID-40]);}
+        return p; }},
+    {name:"Behaviour", w:200, fn:function(t,x){ var p=[[x,MID-40]];
+        var h=[-40,-58,-30,-66,-44];
+        for(var i=0;i<h.length;i++){p.push([x+i*40,h[i]+MID],[x+(i+1)*40,h[i]+MID]);}
+        return p; }}
+  ];
+
+  var d = "", cursor = 0, ticks = "", labels = "";
+  segs.forEach(function(s, i){
+    var pts = s.fn(0, cursor);
+    pts.forEach(function(p, j){
+      d += (d === "" && j === 0 ? "M" : "L") + p[0].toFixed(1) + "," + p[1].toFixed(1) + " ";
+    });
+    ticks  += '<line class="tick" x1="'+cursor+'" y1="150" x2="'+cursor+'" y2="162"/>';
+    labels += '<text x="'+(cursor+2)+'" y="176">'+s.name+'</text>';
+    cursor += s.w + 14;
+  });
+
+  var trace = document.getElementById("sigTrace");
+  trace.setAttribute("d", d.trim());
+  document.getElementById("sigTicks").innerHTML = ticks;
+  document.getElementById("sigLabels").innerHTML = labels;
+
+  var sig = document.getElementById("signal");
+  try {
+    var len = Math.ceil(trace.getTotalLength());
+    sig.style.setProperty("--len", len);
+  } catch(e){ sig.style.setProperty("--len", 6000); }
+
+  if (reduce || !("IntersectionObserver" in window)) {
+    sig.classList.add("is-in");
+  } else {
+    new IntersectionObserver(function(entries, obs){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ sig.classList.add("is-in"); obs.disconnect(); }
+      });
+    }, {threshold:0.35}).observe(sig);
+  }
+
+  /* ---- 35mm strip: three frames graded, the rest held back ---- */
+  var grades = [
+    "linear-gradient(150deg,#1B3A5C,#6FA8C9 55%,#E4D3A8)",
+    "linear-gradient(160deg,#3A1414,#A5372A 50%,#E8A15C)",
+    "linear-gradient(140deg,#123028,#3E7F5E 55%,#D6D08A)",
+    "linear-gradient(165deg,#2A1B3D,#7A4A8C 55%,#E0A6B8)",
+    "linear-gradient(150deg,#42260F,#C4762B 60%,#F0D9A0)",
+    "linear-gradient(155deg,#0E2340,#2F6FA8 50%,#9FC9D8)",
+    "linear-gradient(145deg,#3C1030,#9B2F6A 55%,#F0B6A0)",
+    "linear-gradient(160deg,#14301C,#4E8A3A 55%,#CFD98C)",
+    "linear-gradient(150deg,#301A08,#8A5A20 55%,#E8C98A)",
+    "linear-gradient(140deg,#0C1E3A,#4A5FA8 55%,#C8B8E0)",
+    "linear-gradient(158deg,#3A2408,#B08A2A 55%,#EFE0B0)",
+    "linear-gradient(150deg,#24122E,#6A3A78 55%,#D8A8C8)",
+    "linear-gradient(162deg,#0F2A2A,#357878 55%,#B8D8CE)",
+    "linear-gradient(148deg,#40180E,#B04A28 55%,#F0C098)"
+  ];
+  var lit = [2, 6, 11];
+  var frames = document.getElementById("frames");
+  grades.forEach(function(g, i){
+    var el = document.createElement("div");
+    el.className = "frame" + (lit.indexOf(i) > -1 ? " lit" : "");
+    el.style.background = g;
+    frames.appendChild(el);
+  });
+
+
+})();
+</script>
+</body>
+</html>
